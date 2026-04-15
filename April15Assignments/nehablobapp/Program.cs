@@ -14,20 +14,20 @@ namespace ImageEncryptDecrypt
         static async Task Main(string[] args)
         {
             // 🔐 Azure Credentials (YOURS)
-            string tenantId = "189fb143-6ba1-4c35-bc5c-029e2e66f97e";
-            string clientId = "88270609-7695-4c50-baa2-060686e2642c";
-            string clientSecret = "4OJ8Q~yAxtT5AewE7yZf-CuIUYkblBaiBJzmOc.p";
+            string tenantId = "";
+            string clientId = "";
+            string clientSecret = "";
 
             // 🔹 Azure Resources (YOURS)
-            string vaultUrl = "https://nehakeyvault1.vault.azure.net/";
-            string keyName = "keyvaultnb";
+            string vaultUrl = "";
+            string keyName = "";
 
-            string storageUrl = "https://nehacgstorage.blob.core.windows.net/";
+            string storageUrl = "";
             string containerName = "data";
 
             // 🔹 File paths (FIX THIS PATH)
-            string inputImagePath = @"C:\Users\91979\OneDrive\Pictures\cog.png";
-            string outputImagePath = @"C:\Users\91979\OneDrive\Pictures\output.jpg";
+            string inputImagePath = @"";
+            string outputImagePath = @"";
 
             // 🔹 Blob names
             string encryptedBlobName = "image.enc";

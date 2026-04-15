@@ -8,15 +8,15 @@ namespace nehabatch2app
     {
         static async Task Main(string[] args)
         {
-            string tenantId = "189fb143-6ba1-4c35-bc5c-029e2e66f97e";
-            string clientId = "1ee9d01f-f9f9-4c55-b2c7-de026f75cdec";
-            string clientSecret = "5bN8Q~N8bGKxe1~RT4GSWeecDTuO2PHG8uV6Vc~e";
+            string tenantId = "";
+            string clientId = "";
+            string clientSecret = "";
 
 
             var credential = new ClientSecretCredential(tenantId, clientId, clientSecret);
 
-            string vaultUrl = "https://nehakeyvault1.vault.azure.net/";
-            string keyName = "keyvaultnb";
+            string vaultUrl = "";
+            string keyName = "";
 
 
             var keyClient = new KeyClient(new Uri(vaultUrl), credential);
