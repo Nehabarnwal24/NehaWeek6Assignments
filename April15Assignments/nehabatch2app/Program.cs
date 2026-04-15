@@ -2,34 +2,34 @@
 using Azure.Security.KeyVault.Keys;
 using Azure.Security.KeyVault.Keys.Cryptography;
 using System.Text;
+
 namespace nehabatch2app
 {
     public class Program
     {
         static async Task Main(string[] args)
         {
-            string tenantId = "";
-            string clientId = "";
-            string clientSecret = "";
-
+            // 🔐 Get credentials from environment variables
+            string tenantId = Environment.GetEnvironmentVariable("AZURE_TENANT_ID");
+            string clientId = Environment.GetEnvironmentVariable("AZURE_CLIENT_ID");
+            string clientSecret = Environment.GetEnvironmentVariable("AZURE_CLIENT_SECRET");
 
             var credential = new ClientSecretCredential(tenantId, clientId, clientSecret);
 
-            string vaultUrl = "";
-            string keyName = "";
-
+            // 🔹 Azure resources from env
+            string vaultUrl = Environment.GetEnvironmentVariable("AZURE_KEYVAULT_URL");
+            string keyName = Environment.GetEnvironmentVariable("AZURE_KEY_NAME");
 
             var keyClient = new KeyClient(new Uri(vaultUrl), credential);
-            KeyVaultKey key;
-
-            key = await keyClient.GetKeyAsync(keyName);
+            KeyVaultKey key = (await keyClient.GetKeyAsync(keyName)).Value;
 
             string originalText = "Sensitive order data for CloudXeus Technology Services";
             byte[] plaintextBytes = Encoding.UTF8.GetBytes(originalText);
 
             var cryptoClient = new CryptographyClient(key.Id, credential);
 
-            EncryptResult encryptResult = await cryptoClient.EncryptAsync(EncryptionAlgorithm.RsaOaep,
+            EncryptResult encryptResult = await cryptoClient.EncryptAsync(
+                EncryptionAlgorithm.RsaOaep,
                 plaintextBytes);
 
             Console.WriteLine("Encrypted text (Base64):");

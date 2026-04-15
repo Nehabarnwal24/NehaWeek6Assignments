@@ -13,46 +13,34 @@ namespace ImageEncryptDecrypt
     {
         static async Task Main(string[] args)
         {
-            // 🔐 Azure Credentials (YOURS)
-            string tenantId = "";
-            string clientId = "";
-            string clientSecret = "";
+            // 🔐 Get credentials from environment variables
+            string tenantId = Environment.GetEnvironmentVariable("AZURE_TENANT_ID");
+            string clientId = Environment.GetEnvironmentVariable("AZURE_CLIENT_ID");
+            string clientSecret = Environment.GetEnvironmentVariable("AZURE_CLIENT_SECRET");
 
-            // 🔹 Azure Resources (YOURS)
-            string vaultUrl = "";
-            string keyName = "";
+            var credential = new ClientSecretCredential(tenantId, clientId, clientSecret);
 
-            string storageUrl = "";
+            // 🔹 Azure resources
+            string vaultUrl = Environment.GetEnvironmentVariable("AZURE_KEYVAULT_URL");
+            string keyName = Environment.GetEnvironmentVariable("AZURE_KEY_NAME");
+            string storageUrl = Environment.GetEnvironmentVariable("AZURE_STORAGE_URL");
+
             string containerName = "data";
 
-            // 🔹 File paths (FIX THIS PATH)
-            string inputImagePath = @"";
-            string outputImagePath = @"";
+            string inputImagePath = @"C:\Users\YOUR_PATH\input.png";
+            string outputImagePath = @"C:\Users\YOUR_PATH\output.jpg";
 
-            // 🔹 Blob names
             string encryptedBlobName = "image.enc";
             string encryptedKeyBlobName = "key.enc";
             string ivBlobName = "iv.bin";
 
-            // 🔐 Authentication
-            var credential = new ClientSecretCredential(tenantId, clientId, clientSecret);
-
-            // =========================
-            // 🔹 KEY VAULT SETUP
-            // =========================
             var keyClient = new KeyClient(new Uri(vaultUrl), credential);
             KeyVaultKey key = (await keyClient.GetKeyAsync(keyName)).Value;
 
             var cryptoClient = new CryptographyClient(key.Id, credential);
 
-            // =========================
-            // 🔹 READ IMAGE
-            // =========================
             byte[] imageBytes = File.ReadAllBytes(inputImagePath);
 
-            // =========================
-            // 🔹 AES ENCRYPTION
-            // =========================
             using Aes aes = Aes.Create();
             aes.GenerateKey();
             aes.GenerateIV();
@@ -66,22 +54,13 @@ namespace ImageEncryptDecrypt
                 encryptedImage = ms.ToArray();
             }
 
-            // =========================
-            // 🔹 ENCRYPT AES KEY (Key Vault)
-            // =========================
             EncryptResult encryptedKey = await cryptoClient.EncryptAsync(
                 EncryptionAlgorithm.RsaOaep,
                 aes.Key);
 
-            // =========================
-            // 🔹 BLOB STORAGE SETUP
-            // =========================
             var blobServiceClient = new BlobServiceClient(new Uri(storageUrl), credential);
             var container = blobServiceClient.GetBlobContainerClient(containerName);
 
-            // =========================
-            // 🔹 UPLOAD ALL FILES
-            // =========================
             await container.GetBlobClient(encryptedBlobName)
                 .UploadAsync(new MemoryStream(encryptedImage), overwrite: true);
 
@@ -93,9 +72,6 @@ namespace ImageEncryptDecrypt
 
             Console.WriteLine("✅ Encrypted and uploaded.");
 
-            // =========================
-            // 🔹 DOWNLOAD FILES
-            // =========================
             byte[] downloadedImage = (await container.GetBlobClient(encryptedBlobName)
                 .DownloadContentAsync()).Value.Content.ToArray();
 
@@ -105,16 +81,10 @@ namespace ImageEncryptDecrypt
             byte[] downloadedIV = (await container.GetBlobClient(ivBlobName)
                 .DownloadContentAsync()).Value.Content.ToArray();
 
-            // =========================
-            // 🔹 DECRYPT AES KEY
-            // =========================
             DecryptResult decryptedKey = await cryptoClient.DecryptAsync(
                 EncryptionAlgorithm.RsaOaep,
                 downloadedKey);
 
-            // =========================
-            // 🔹 AES DECRYPTION
-            // =========================
             using Aes aesDecrypt = Aes.Create();
             aesDecrypt.Key = decryptedKey.Plaintext;
             aesDecrypt.IV = downloadedIV;
